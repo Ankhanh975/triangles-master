@@ -977,7 +977,7 @@ FSS.CanvasRenderer.prototype.clear = function() {
 
 FSS.CanvasRenderer.prototype.render = function(scene) {
   FSS.Renderer.prototype.render.call(this, scene);
-  var m,mesh, t,triangle, color;
+  var m,mesh, t,triangle, color, rgba, r, g, b, a;
 
   // Clear Context
   this.clear();
@@ -995,7 +995,13 @@ FSS.CanvasRenderer.prototype.render = function(scene) {
       // Render Triangles
       for (t = mesh.geometry.triangles.length - 1; t >= 0; t--) {
         triangle = mesh.geometry.triangles[t];
-        color = triangle.color.format();
+        rgba = triangle.color.rgba;
+        r = Math.round(rgba[0] * 255);
+        g = Math.round(rgba[1] * 255);
+        b = Math.round(rgba[2] * 255);
+        // Per-pixel alpha based on intensity so black pixels are transparent.
+        a = (0.2126 * rgba[0]) + (0.7152 * rgba[1]) + (0.0722 * rgba[2]);
+        color = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
         this.context.beginPath();
         this.context.moveTo(triangle.a.position[0], triangle.a.position[1]);
         this.context.lineTo(triangle.b.position[0], triangle.b.position[1]);
@@ -1406,8 +1412,9 @@ FSS.WebGLRenderer.FS = function(lights) {
   // Main
   'void main() {',
 
-    // Set gl_FragColor
-    'gl_FragColor = vColor;',
+    // Per-pixel alpha based on intensity so black pixels are transparent.
+    'float intensity = dot(vColor.rgb, vec3(0.2126, 0.7152, 0.0722));',
+    'gl_FragColor = vec4(vColor.rgb, intensity);',
 
   '}'
 
@@ -1465,7 +1472,7 @@ FSS.SVGRenderer.prototype.render = function(scene) {
         points  = this.formatPoint(triangle.a)+' ';
         points += this.formatPoint(triangle.b)+' ';
         points += this.formatPoint(triangle.c);
-        style = this.formatStyle(triangle.color.format());
+        style = this.formatStyle(triangle);
         triangle.polygon.setAttributeNS(null, 'points', points);
         triangle.polygon.setAttributeNS(null, 'style', style);
       }
@@ -1478,9 +1485,17 @@ FSS.SVGRenderer.prototype.formatPoint = function(vertex) {
   return (this.halfWidth+vertex.position[0])+','+(this.halfHeight-vertex.position[1]);
 };
 
-FSS.SVGRenderer.prototype.formatStyle = function(color) {
-  var style = 'fill:'+color+';';
-  style += 'stroke:'+color+';';
+FSS.SVGRenderer.prototype.formatStyle = function(triangle) {
+  var rgba = triangle.color.rgba;
+  var r = Math.round(rgba[0] * 255);
+  var g = Math.round(rgba[1] * 255);
+  var b = Math.round(rgba[2] * 255);
+  var a = (0.2126 * rgba[0]) + (0.7152 * rgba[1]) + (0.0722 * rgba[2]);
+  var rgb = 'rgb(' + r + ',' + g + ',' + b + ')';
+  var style = 'fill:' + rgb + ';';
+  style += 'stroke:' + rgb + ';';
+  style += 'fill-opacity:' + a + ';';
+  style += 'stroke-opacity:' + a + ';';
   return style;
 };
 
@@ -1600,7 +1615,7 @@ c);e.bind(this.domElement,"transitionend",c);e.bind(this.domElement,"oTransition
     count: 1,
     xPos : 0,
     yPos : 200,
-    zOffset: 135,
+    zOffset: 802.5,
     ambient: '#FFFFFF',
     diffuse: '#FFFFFF',
     pickedup :true,

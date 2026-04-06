@@ -13,7 +13,7 @@ function createOverlayWindow() {
     y: 0,
     frame: false,
     transparent: true,
-    opacity: 0.65,
+    opacity: 1,
     hasShadow: false,
     resizable: false,
     movable: true,

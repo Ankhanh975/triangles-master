@@ -26,10 +26,7 @@
     "url": "https://github.com/msurguy/triangles/issues"
   },
   "homepage": "https://github.com/msurguy/triangles#readme",
-  "dependencies": {
-    "uglify-js": "^2.2.5"
-  },
   "devDependencies": {
-    "electron": "^31.7.7"
+    "electron": "^41.1.1"
   }
 }
